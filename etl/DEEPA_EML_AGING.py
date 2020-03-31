@@ -13,7 +13,7 @@ date_format = '%Y-%m-%d %H:%M:%S'
 
 dt_today = pd.to_datetime('today')
 id_column = 'Patient ID'
-FILTER_BY_ID = False
+FILTER_BY_ID = True
 FILTER_ID = 12163
 
 
@@ -45,21 +45,21 @@ def get_client_name(row):
     age = abs((datetime.now() - datetime.strptime(str(row['B']), date_format)).days)
 
     if age in range(0, 31):
-        return '010E01'
+        return '013E01'
     if age in range(31, 61):
-        return '010E02'
+        return '013E02'
     if age in range(61, 91):
-        return '010PR1'
+        return '013PR1'
     if age in range(91, 121):
-        return '010LT1'
+        return '013LT1'
     if age in range(121, 210):
-        return '010LT2'
+        return '013LT2'
     if age in range(211, 301):
-        return '010LT2A'
+        return '013LT2A'
     if age in range(301, 361):
-        return '010LT2B'
+        return '013LT2B'
 
-    return '010LT3'
+    return '013LT3'
 
 
 def collection_status(row):
@@ -139,8 +139,8 @@ def transform_data_by_id(df):
     df_output['patient middleinitial'] = df['G']
     df_output['patient mobile no'] = df['N']
     #df_output['proccode-descr'] = df.apply(lambda row: '{}-{}'.format(row['AJ'], row['AB']), axis=1, result_type='expand')
-    df_output['guarantor ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '110'), axis=1, result_type='expand')
-    df_output['patient ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '010'), axis=1, result_type='expand')
+    df_output['guarantor ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '113'), axis=1, result_type='expand')
+    df_output['patient ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '013'), axis=1, result_type='expand')
     df_output['Ordering Physician'] = df['AL']
     df_output['invid'] = df['A']
     df_output['postdate'] = df['B'].dt.strftime('%m/%d/%Y')
@@ -167,14 +167,14 @@ def transform_data_by_id(df):
     df_output['Client Phone'] = '4052001666'
     df_output['Billing Provider'] = df['C']
     df_output['Claim Received Date'] = dt_today.strftime('%m/%d/%Y')
-    df_output['Client Billing Contact'] = 'Sinthya Cruz-Billing Manager'
+    df_output['Client Billing Contact'] = 'Emma Martinez-Billing Manager'
     df_output['Client Payment System URL'] = 'https://innovareprm.repay.io'
     df_output['Client Website'] = 'N/A'
     df_output['Aging Bucket'] = df.apply(lambda row: aging_bucket(row), axis=1, result_type='expand')
     df_output['Customer Service Email'] = 'support@innovareprm.com'
     df_output['Specialty'] = 'Sleep Medicine and Supplies'
     df_output['Custom Account Number'] = df.apply(
-        lambda row: '{}-{}-{}'.format(row['O'], datetime.strftime(row['AC'], "%m.%d.%Y"), 'EML'), axis=1,result_type='expand')
+        lambda row: '{}-{}-{}'.format(row['O'], datetime.strftime(row['AC'], "%m.%d.%Y"), 'SSL'), axis=1,result_type='expand')
     df_output['charge off date'] = df['B'].dt.strftime('%m/%d/%Y')
     df_output['originated date'] = df['AC'].dt.strftime('%m/%d/%Y')
     df_output['patient address'] = df.apply(
@@ -183,7 +183,7 @@ def transform_data_by_id(df):
     df_output['Phone Number2'] = df['N'].astype(str)
     df_output['Phone Number3'] = df['AY'].astype(str)
     df_output['Phone Number4'] = df['AZ'].astype(str)
-    df_output['creditor'] = 'Echelon Medical'
+    df_output['creditor'] = 'Sleep Solutions'
     # Action Code  NON-PAYMENT ROWS=INFO ACCOUNT, PAYMENT ROWS=CORRESPONDENCE ACCOUNT ??
     df_output['Action Code'] = 'INFO ACCOUNT'
 
@@ -251,11 +251,13 @@ def transform_data_by_id(df):
         df_dos.at[index, '25% discount'] = amount * 0.75
         df_dos.at[index, '30% discount'] = amount * 0.70
 
+        '''
         df_dos['Invoice Detail Charge'] = ''
         df_dos['Invoice Detail Allow'] = ''
         df_dos['Invoice Detail Payments'] = ''
         df_dos['Invoice Detail Adjustments'] = ''
         df_dos['Invoice Detail Balance'] = ''
+        '''
 
         # phone numbers - Phone Number1 Phone Number2  Phone Number3 Phone Number4
         phone_set = set()
