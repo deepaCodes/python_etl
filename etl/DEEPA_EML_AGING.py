@@ -9,13 +9,13 @@ from string import ascii_uppercase
 import pandas as pd
 
 #CLIENT_NAME = '0-30=010E01, 31-60=010E02, 61-90=010PR1, 91-120=010LT1, 121-210=010LT2, 211-300=010LT2A, 301-360=010LT2B, 361-9999=010LT3'
+client_prefix = '013'
 date_format = '%Y-%m-%d %H:%M:%S'
 
 dt_today = pd.to_datetime('today')
 id_column = 'Patient ID'
-FILTER_BY_ID = True
-FILTER_ID = 12163
-
+FILTER_BY_ID = False
+FILTER_ID = 21172
 
 def aging_bucket(row):
     """
@@ -45,21 +45,21 @@ def get_client_name(row):
     age = abs((datetime.now() - datetime.strptime(str(row['B']), date_format)).days)
 
     if age in range(0, 31):
-        return '013E01'
+        return '{}E01'.format(client_prefix)
     if age in range(31, 61):
-        return '013E02'
+        return '{}E02'.format(client_prefix)
     if age in range(61, 91):
-        return '013PR1'
+        return '{}PR1'.format(client_prefix)
     if age in range(91, 121):
-        return '013LT1'
+        return '{}LT1'.format(client_prefix)
     if age in range(121, 210):
-        return '013LT2'
+        return '{}LT2'.format(client_prefix)
     if age in range(211, 301):
-        return '013LT2A'
+        return '{}LT2A'.format(client_prefix)
     if age in range(301, 361):
-        return '013LT2B'
+        return '{}LT2B'.format(client_prefix)
 
-    return '013LT3'
+    return '{}LT3'.format(client_prefix)
 
 
 def collection_status(row):
@@ -236,11 +236,14 @@ def transform_data_by_id(df):
 
     df_dos.drop(['Invoice Detail Balance'], axis=1, inplace=True)
 
+    df_output['Client Name'] = df.apply(lambda row: get_client_name(row), axis=1, result_type='expand')
+
     phone_list = []
     for index, row in df_dos.iterrows():
         if row['Action Code'] == 'CORRESPONDENCE ACCOUNT':
             df_dos.at[index, 'original claim amount (DOS Rows)'] = 0
             df_dos.at[index, 'Balance (DOS Rows)'] = 0
+            df_dos.at[index, 'Client Name'] = '{}COR'.format(client_prefix)
             amount = row['original claim amount (Totals Row)']
         else:
             amount = row['original claim amount (DOS Rows)']
