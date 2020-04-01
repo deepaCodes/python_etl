@@ -9,13 +9,13 @@ from string import ascii_uppercase
 import pandas as pd
 
 #CLIENT_NAME = '0-30=010E01, 31-60=010E02, 61-90=010PR1, 91-120=010LT1, 121-210=010LT2, 211-300=010LT2A, 301-360=010LT2B, 361-9999=010LT3'
-client_prefix = '013'
 date_format = '%Y-%m-%d %H:%M:%S'
 
 dt_today = pd.to_datetime('today')
 id_column = 'Patient ID'
 FILTER_BY_ID = False
-FILTER_ID = 21172
+FILTER_ID = 12163
+
 
 def aging_bucket(row):
     """
@@ -45,21 +45,21 @@ def get_client_name(row):
     age = abs((datetime.now() - datetime.strptime(str(row['B']), date_format)).days)
 
     if age in range(0, 31):
-        return '{}E01'.format(client_prefix)
+        return '010E01'
     if age in range(31, 61):
-        return '{}E02'.format(client_prefix)
+        return '010E02'
     if age in range(61, 91):
-        return '{}PR1'.format(client_prefix)
+        return '010PR1'
     if age in range(91, 121):
-        return '{}LT1'.format(client_prefix)
+        return '010LT1'
     if age in range(121, 210):
-        return '{}LT2'.format(client_prefix)
+        return '010LT2'
     if age in range(211, 301):
-        return '{}LT2A'.format(client_prefix)
+        return '010LT2A'
     if age in range(301, 361):
-        return '{}LT2B'.format(client_prefix)
+        return '010LT2B'
 
-    return '{}LT3'.format(client_prefix)
+    return '010LT3'
 
 
 def collection_status(row):
@@ -139,8 +139,8 @@ def transform_data_by_id(df):
     df_output['patient middleinitial'] = df['G']
     df_output['patient mobile no'] = df['N']
     #df_output['proccode-descr'] = df.apply(lambda row: '{}-{}'.format(row['AJ'], row['AB']), axis=1, result_type='expand')
-    df_output['guarantor ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '113'), axis=1, result_type='expand')
-    df_output['patient ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '013'), axis=1, result_type='expand')
+    df_output['guarantor ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '110'), axis=1, result_type='expand')
+    df_output['patient ssn'] = df.apply(lambda row: '{}{}{}'.format(row['O'], '0', '010'), axis=1, result_type='expand')
     df_output['Ordering Physician'] = df['AL']
     df_output['invid'] = df['A']
     df_output['postdate'] = df['B'].dt.strftime('%m/%d/%Y')
@@ -167,14 +167,14 @@ def transform_data_by_id(df):
     df_output['Client Phone'] = '4052001666'
     df_output['Billing Provider'] = df['C']
     df_output['Claim Received Date'] = dt_today.strftime('%m/%d/%Y')
-    df_output['Client Billing Contact'] = 'Emma Martinez-Billing Manager'
+    df_output['Client Billing Contact'] = 'Sinthya Cruz-Billing Manager'
     df_output['Client Payment System URL'] = 'https://innovareprm.repay.io'
     df_output['Client Website'] = 'N/A'
     df_output['Aging Bucket'] = df.apply(lambda row: aging_bucket(row), axis=1, result_type='expand')
     df_output['Customer Service Email'] = 'support@innovareprm.com'
     df_output['Specialty'] = 'Sleep Medicine and Supplies'
     df_output['Custom Account Number'] = df.apply(
-        lambda row: '{}-{}-{}'.format(row['O'], datetime.strftime(row['AC'], "%m.%d.%Y"), 'SSL'), axis=1,result_type='expand')
+        lambda row: '{}-{}-{}'.format(row['O'], datetime.strftime(row['AC'], "%m.%d.%Y"), 'EML'), axis=1,result_type='expand')
     df_output['charge off date'] = df['B'].dt.strftime('%m/%d/%Y')
     df_output['originated date'] = df['AC'].dt.strftime('%m/%d/%Y')
     df_output['patient address'] = df.apply(
@@ -183,7 +183,7 @@ def transform_data_by_id(df):
     df_output['Phone Number2'] = df['N'].astype(str)
     df_output['Phone Number3'] = df['AY'].astype(str)
     df_output['Phone Number4'] = df['AZ'].astype(str)
-    df_output['creditor'] = 'Sleep Solutions'
+    df_output['creditor'] = 'Echelon Medical'
     # Action Code  NON-PAYMENT ROWS=INFO ACCOUNT, PAYMENT ROWS=CORRESPONDENCE ACCOUNT ??
     df_output['Action Code'] = 'INFO ACCOUNT'
 
@@ -236,14 +236,11 @@ def transform_data_by_id(df):
 
     df_dos.drop(['Invoice Detail Balance'], axis=1, inplace=True)
 
-    df_output['Client Name'] = df.apply(lambda row: get_client_name(row), axis=1, result_type='expand')
-
     phone_list = []
     for index, row in df_dos.iterrows():
         if row['Action Code'] == 'CORRESPONDENCE ACCOUNT':
             df_dos.at[index, 'original claim amount (DOS Rows)'] = 0
             df_dos.at[index, 'Balance (DOS Rows)'] = 0
-            df_dos.at[index, 'Client Name'] = '{}COR'.format(client_prefix)
             amount = row['original claim amount (Totals Row)']
         else:
             amount = row['original claim amount (DOS Rows)']
@@ -254,13 +251,11 @@ def transform_data_by_id(df):
         df_dos.at[index, '25% discount'] = amount * 0.75
         df_dos.at[index, '30% discount'] = amount * 0.70
 
-        '''
         df_dos['Invoice Detail Charge'] = ''
         df_dos['Invoice Detail Allow'] = ''
         df_dos['Invoice Detail Payments'] = ''
         df_dos['Invoice Detail Adjustments'] = ''
         df_dos['Invoice Detail Balance'] = ''
-        '''
 
         # phone numbers - Phone Number1 Phone Number2  Phone Number3 Phone Number4
         phone_set = set()
@@ -384,6 +379,9 @@ def main(input_excel_file, output_excel_file):
 
     #print('Loading data from input_excel_file: {}'.format(input_excel_file))
 
+    #print('in main func')
+    #input_excel_file = 'E:\python\data\excel/EML_AGING FINAL_20191105_EML-Test Input.xlsx'
+    #output_excel_file = 'EML_AGING FINAL_20191105_EML Output.xlsx'
     # call function to read excel file
     df, sheet_name = load_excel_file(input_excel_file)
 
